@@ -2,15 +2,13 @@ package com.api.codenest;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Optional;
 import java.util.Random;
@@ -38,12 +36,12 @@ public class Controller {
 	private CodeExecutorService codeSummaryService;
 
 	private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
 
 	@PostMapping("/execute")
 	public ResponseEntity<String> executeCode(@RequestParam String language, @RequestParam String code,
-			@RequestParam String input) {
+											  @RequestParam String input) {
 
 		System.out.println("Execute code called for language " + language);
 		String id = generateRandomString(5);
@@ -51,13 +49,6 @@ public class Controller {
 		// Save the language and code into MySQL
 		try {
 			String sql = "INSERT INTO codesummary (id, language, code, input) VALUES (?, ?, ?, ?)";
-//			try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-//				pstmt.setString(1, id);
-//				pstmt.setString(2, language);
-//				pstmt.setString(3, code);
-//				pstmt.setString(4, input);
-//				pstmt.executeUpdate();
-//			}
 			jdbcTemplate.update(sql, id, language, code, input);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -65,7 +56,6 @@ public class Controller {
 		}
 
 		CompletableFuture.runAsync(() -> {
-
 			switch (language.toLowerCase()) {
 				case "java":
 					executeJavaCode(id);
@@ -80,8 +70,11 @@ public class Controller {
 					executeJavaScriptCode(id);
 					break;
 				// Add cases for other languages as needed
+				default:
+					System.err.println("Unsupported language: " + language);
 			}
 		});
+
 		return ResponseEntity.ok(id);
 	}
 
@@ -128,17 +121,19 @@ public class Controller {
 		try {
 			Optional<CodeSummaryEntity> res = codeSummaryService.getFieldById(id);
 			String input = res.get().getInput();
+			String code = res.get().getCode();
 
-			// Write the Java code to a file
-			Path sourcePath = Paths.get("Main.java");
-			Files.write(sourcePath, res.get().getCode().getBytes());
+			// Create temporary file for the Java code
+			Path sourcePath = Files.createTempFile("Main", ".java");
+			Files.write(sourcePath, code.getBytes());
 
-//			// Compile the Java code
-//			Process compileProcess = new ProcessBuilder("java", "-c").start();
-//			compileProcess.waitFor();
+			// Compile the Java code
+			Process compileProcess = new ProcessBuilder("javac", sourcePath.toString()).start();
+			compileProcess.waitFor();
 
 			// Execute the compiled Java code with input
-			ProcessBuilder processBuilder = new ProcessBuilder("java", sourcePath.toString());
+			Path classPath = Files.createTempFile("Main", ".class");
+			ProcessBuilder processBuilder = new ProcessBuilder("java", "-cp", classPath.getParent().toString(), "Main");
 			Process executeProcess = processBuilder.start();
 			try (OutputStream outputStream = executeProcess.getOutputStream()) {
 				outputStream.write(input.getBytes());
@@ -170,39 +165,22 @@ public class Controller {
 		codeSummaryService.updateFieldById(id, output);
 	}
 
-	public static String generateRandomString(int length) {
-		Random random = new Random();
-		StringBuilder sb = new StringBuilder(length);
-
-		for (int i = 0; i < length; i++) {
-			int randomIndex = random.nextInt(CHARACTERS.length());
-			char randomChar = CHARACTERS.charAt(randomIndex);
-			sb.append(randomChar);
-		}
-
-		return sb.toString();
-	}
-
-	// python code
 	private void executePythonCode(String id) {
 		String output;
 		try {
 			Optional<CodeSummaryEntity> res = codeSummaryService.getFieldById(id);
 			String input = res.get().getInput();
+			String code = res.get().getCode();
 
-			Path sourcePath = Paths.get("main.py");
-			Files.write(sourcePath, res.get().getCode().getBytes());
+			Path sourcePath = Files.createTempFile("main", ".py");
+			Files.write(sourcePath, code.getBytes());
 
-			// Execute the Python code with input
 			ProcessBuilder processBuilder = new ProcessBuilder("python", sourcePath.toString());
 			Process process = processBuilder.start();
-
-			// Pass input to the process
 			try (OutputStream outputStream = process.getOutputStream()) {
 				outputStream.write(input.getBytes());
 			}
 
-			// Read the output of the Python script
 			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 			StringBuilder result = new StringBuilder();
 			String line;
@@ -210,7 +188,6 @@ public class Controller {
 				result.append(line).append("\n");
 			}
 
-			// Wait for the process to complete and capture any errors
 			int exitCode = process.waitFor();
 			if (exitCode == 0) {
 				output = result.toString();
@@ -229,16 +206,15 @@ public class Controller {
 		codeSummaryService.updateFieldById(id, output);
 	}
 
-	// cpp code
 	private void executeCppCode(String id) {
 		String output;
 		try {
 			Optional<CodeSummaryEntity> res = codeSummaryService.getFieldById(id);
 			String input = res.get().getInput();
+			String code = res.get().getCode();
 
-			// Write the C++ code to a file
-			Path sourcePath = Paths.get("main.cpp");
-			Files.write(sourcePath, res.get().getCode().getBytes());
+			Path sourcePath = Files.createTempFile("main", ".cpp");
+			Files.write(sourcePath, code.getBytes());
 
 			// Compile the C++ code
 			Process compileProcess = new ProcessBuilder("g++", sourcePath.toString(), "-o", "main").start();
@@ -258,7 +234,6 @@ public class Controller {
 				result.append(line).append("\n");
 			}
 
-			// Wait for the process to complete and capture any errors
 			int exitCode = executeProcess.waitFor();
 			if (exitCode == 0) {
 				output = result.toString();
@@ -277,24 +252,22 @@ public class Controller {
 		codeSummaryService.updateFieldById(id, output);
 	}
 
-	// js code
 	private void executeJavaScriptCode(String id) {
 		String output;
 		try {
-			// Store the JavaScript code temporarily in a file (same as before)
 			Optional<CodeSummaryEntity> res = codeSummaryService.getFieldById(id);
 			String input = res.get().getInput();
-			Path scriptPath = Paths.get("main.js");
-			Files.write(scriptPath, res.get().getCode().getBytes());
+			String code = res.get().getCode();
 
-			// Use Node.js to execute the script with input
+			Path scriptPath = Files.createTempFile("main", ".js");
+			Files.write(scriptPath, code.getBytes());
+
 			ProcessBuilder processBuilder = new ProcessBuilder("node", scriptPath.toString());
 			Process process = processBuilder.start();
 			try (OutputStream outputStream = process.getOutputStream()) {
 				outputStream.write(input.getBytes());
 			}
 
-			// Capture output
 			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 			StringBuilder result = new StringBuilder();
 			String line;
@@ -303,7 +276,6 @@ public class Controller {
 			}
 			output = result.toString();
 
-			// Handle errors
 			int exitCode = process.waitFor();
 			if (exitCode != 0) {
 				BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
@@ -320,4 +292,16 @@ public class Controller {
 		codeSummaryService.updateFieldById(id, output);
 	}
 
+	public static String generateRandomString(int length) {
+		Random random = new Random();
+		StringBuilder sb = new StringBuilder(length);
+
+		for (int i = 0; i < length; i++) {
+			int randomIndex = random.nextInt(CHARACTERS.length());
+			char randomChar = CHARACTERS.charAt(randomIndex);
+			sb.append(randomChar);
+		}
+
+		return sb.toString();
+	}
 }
