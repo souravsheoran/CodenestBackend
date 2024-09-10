@@ -21,6 +21,7 @@ import javax.tools.SimpleJavaFileObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -37,6 +38,8 @@ public class Controller {
 	private CodeExecutorService codeSummaryService;
 
 	private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
 	@PostMapping("/execute")
 	public ResponseEntity<String> executeCode(@RequestParam String language, @RequestParam String code,
@@ -44,17 +47,19 @@ public class Controller {
 
 		System.out.println("Execute code called for language " + language);
 		String id = generateRandomString(5);
+
 		// Save the language and code into MySQL
-		try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/codenest", "root", "root")) {
+		try {
 			String sql = "INSERT INTO codesummary (id, language, code, input) VALUES (?, ?, ?, ?)";
-			try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-				pstmt.setString(1, id);
-				pstmt.setString(2, language);
-				pstmt.setString(3, code);
-				pstmt.setString(4, input);
-				pstmt.executeUpdate();
-			}
-		} catch (SQLException e) {
+//			try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+//				pstmt.setString(1, id);
+//				pstmt.setString(2, language);
+//				pstmt.setString(3, code);
+//				pstmt.setString(4, input);
+//				pstmt.executeUpdate();
+//			}
+			jdbcTemplate.update(sql, id, language, code, input);
+		} catch (Exception e) {
 			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error saving code to database");
 		}

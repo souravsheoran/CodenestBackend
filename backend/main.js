@@ -1,2 +1,2 @@
 // JavaScript code example
-console.log("CodeNest");
+console.log("New");
