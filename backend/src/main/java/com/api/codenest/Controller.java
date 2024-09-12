@@ -117,6 +117,183 @@ public class Controller {
 		}
 	}
 
+//	private void executeJavaCode(String id) {
+//		String output;
+//		try {
+//			Optional<CodeSummaryEntity> res = codeSummaryService.getFieldById(id);
+//			String input = res.get().getInput();
+//			String code = res.get().getCode();
+//
+//			// Create temporary file for the Java code
+//			Path sourcePath = Files.createTempFile("Main", ".java");
+//			Files.write(sourcePath, code.getBytes());
+//
+//			// Compile the Java code
+//			Process compileProcess = new ProcessBuilder("javac", sourcePath.toString()).start();
+//			compileProcess.waitFor();
+//
+//			// Execute the compiled Java code with input
+//			Path classPath = Files.createTempFile("Main", ".class");
+//			ProcessBuilder processBuilder = new ProcessBuilder("java", "-cp", classPath.getParent().toString(), "Main");
+//			Process executeProcess = processBuilder.start();
+//			try (OutputStream outputStream = executeProcess.getOutputStream()) {
+//				outputStream.write(input.getBytes());
+//			}
+//
+//			BufferedReader reader = new BufferedReader(new InputStreamReader(executeProcess.getInputStream()));
+//			StringBuilder result = new StringBuilder();
+//			String line;
+//			while ((line = reader.readLine()) != null) {
+//				result.append(line).append("\n");
+//			}
+//
+//			// Wait for the process to complete and capture any errors
+//			int exitCode = executeProcess.waitFor();
+//			if (exitCode == 0) {
+//				output = result.toString();
+//			} else {
+//				BufferedReader errorReader = new BufferedReader(new InputStreamReader(executeProcess.getErrorStream()));
+//				StringBuilder errorResult = new StringBuilder();
+//				String errorLine;
+//				while ((errorLine = errorReader.readLine()) != null) {
+//					errorResult.append(errorLine).append("\n");
+//				}
+//				output = "Error executing Java code:\n" + errorResult.toString();
+//			}
+//		} catch (Exception e) {
+//			output = "Error executing Java code:\n" + e.toString();
+//		}
+//		codeSummaryService.updateFieldById(id, output);
+//	}
+//
+//	private void executePythonCode(String id) {
+//		String output;
+//		try {
+//			Optional<CodeSummaryEntity> res = codeSummaryService.getFieldById(id);
+//			String input = res.get().getInput();
+//			String code = res.get().getCode();
+//
+//			Path sourcePath = Files.createTempFile("main", ".py");
+//			Files.write(sourcePath, code.getBytes());
+//
+//			ProcessBuilder processBuilder = new ProcessBuilder("python", sourcePath.toString());
+//			Process process = processBuilder.start();
+//			try (OutputStream outputStream = process.getOutputStream()) {
+//				outputStream.write(input.getBytes());
+//			}
+//
+//			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+//			StringBuilder result = new StringBuilder();
+//			String line;
+//			while ((line = reader.readLine()) != null) {
+//				result.append(line).append("\n");
+//			}
+//
+//			int exitCode = process.waitFor();
+//			if (exitCode == 0) {
+//				output = result.toString();
+//			} else {
+//				BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+//				StringBuilder errorResult = new StringBuilder();
+//				String errorLine;
+//				while ((errorLine = errorReader.readLine()) != null) {
+//					errorResult.append(errorLine).append("\n");
+//				}
+//				output = "Error executing Python code:\n" + errorResult.toString();
+//			}
+//		} catch (Exception e) {
+//			output = "Error executing Python code:\n" + e.toString();
+//		}
+//		codeSummaryService.updateFieldById(id, output);
+//	}
+//
+//	private void executeCppCode(String id) {
+//		String output;
+//		try {
+//			Optional<CodeSummaryEntity> res = codeSummaryService.getFieldById(id);
+//			String input = res.get().getInput();
+//			String code = res.get().getCode();
+//
+//			Path sourcePath = Files.createTempFile("main", ".cpp");
+//			Files.write(sourcePath, code.getBytes());
+//
+//			// Compile the C++ code
+//			Process compileProcess = new ProcessBuilder("g++", sourcePath.toString(), "-o", "main").start();
+//			compileProcess.waitFor();
+//
+//			// Execute the compiled C++ code with input
+//			ProcessBuilder processBuilder = new ProcessBuilder("./main");
+//			Process executeProcess = processBuilder.start();
+//			try (OutputStream outputStream = executeProcess.getOutputStream()) {
+//				outputStream.write(input.getBytes());
+//			}
+//
+//			BufferedReader reader = new BufferedReader(new InputStreamReader(executeProcess.getInputStream()));
+//			StringBuilder result = new StringBuilder();
+//			String line;
+//			while ((line = reader.readLine()) != null) {
+//				result.append(line).append("\n");
+//			}
+//
+//			int exitCode = executeProcess.waitFor();
+//			if (exitCode == 0) {
+//				output = result.toString();
+//			} else {
+//				BufferedReader errorReader = new BufferedReader(new InputStreamReader(executeProcess.getErrorStream()));
+//				StringBuilder errorResult = new StringBuilder();
+//				String errorLine;
+//				while ((errorLine = errorReader.readLine()) != null) {
+//					errorResult.append(errorLine).append("\n");
+//				}
+//				output = "Error executing C++ code:\n" + errorResult.toString();
+//			}
+//		} catch (Exception e) {
+//			output = "Error executing C++ code:\n" + e.toString();
+//		}
+//		codeSummaryService.updateFieldById(id, output);
+//	}
+//
+//	private void executeJavaScriptCode(String id) {
+//		String output;
+//		try {
+//			Optional<CodeSummaryEntity> res = codeSummaryService.getFieldById(id);
+//			String input = res.get().getInput();
+//			String code = res.get().getCode();
+//
+//			Path scriptPath = Files.createTempFile("main", ".js");
+//			Files.write(scriptPath, code.getBytes());
+//
+//			ProcessBuilder processBuilder = new ProcessBuilder("node", scriptPath.toString());
+//			Process process = processBuilder.start();
+//			try (OutputStream outputStream = process.getOutputStream()) {
+//				outputStream.write(input.getBytes());
+//			}
+//
+//			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+//			StringBuilder result = new StringBuilder();
+//			String line;
+//			while ((line = reader.readLine()) != null) {
+//				result.append(line).append("\n");
+//			}
+//			output = result.toString();
+//
+//			int exitCode = process.waitFor();
+//			if (exitCode != 0) {
+//				BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+//				StringBuilder errorResult = new StringBuilder();
+//				String errorLine;
+//				while ((errorLine = errorReader.readLine()) != null) {
+//					errorResult.append(errorLine).append("\n");
+//				}
+//				output = "Error executing JavaScript code:\n" + errorResult.toString();
+//			}
+//		} catch (Exception e) {
+//			output = "Error executing JavaScript code:\n" + e.toString();
+//		}
+//		codeSummaryService.updateFieldById(id, output);
+//	}
+
+	//new code
 	private void executeJavaCode(String id) {
 		String output;
 		try {
@@ -124,35 +301,33 @@ public class Controller {
 			String input = res.get().getInput();
 			String code = res.get().getCode();
 
-			// Create temporary file for the Java code
 			Path sourcePath = Files.createTempFile("Main", ".java");
 			Files.write(sourcePath, code.getBytes());
 
-			// Compile the Java code
-			Process compileProcess = new ProcessBuilder("javac", sourcePath.toString()).start();
-			compileProcess.waitFor();
+			// Create Docker command to compile and run Java code
+			String dockerCommand = String.format(
+					"docker run --rm -v %s:/app -w /app openjdk:17-jdk-slim /bin/sh -c 'javac Main.java && java Main'",
+					sourcePath.getParent().toAbsolutePath()
+			);
 
-			// Execute the compiled Java code with input
-			Path classPath = Files.createTempFile("Main", ".class");
-			ProcessBuilder processBuilder = new ProcessBuilder("java", "-cp", classPath.getParent().toString(), "Main");
-			Process executeProcess = processBuilder.start();
-			try (OutputStream outputStream = executeProcess.getOutputStream()) {
+			ProcessBuilder processBuilder = new ProcessBuilder("sh", "-c", dockerCommand);
+			Process process = processBuilder.start();
+			try (OutputStream outputStream = process.getOutputStream()) {
 				outputStream.write(input.getBytes());
 			}
 
-			BufferedReader reader = new BufferedReader(new InputStreamReader(executeProcess.getInputStream()));
+			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 			StringBuilder result = new StringBuilder();
 			String line;
 			while ((line = reader.readLine()) != null) {
 				result.append(line).append("\n");
 			}
 
-			// Wait for the process to complete and capture any errors
-			int exitCode = executeProcess.waitFor();
+			int exitCode = process.waitFor();
 			if (exitCode == 0) {
 				output = result.toString();
 			} else {
-				BufferedReader errorReader = new BufferedReader(new InputStreamReader(executeProcess.getErrorStream()));
+				BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 				StringBuilder errorResult = new StringBuilder();
 				String errorLine;
 				while ((errorLine = errorReader.readLine()) != null) {
@@ -176,7 +351,13 @@ public class Controller {
 			Path sourcePath = Files.createTempFile("main", ".py");
 			Files.write(sourcePath, code.getBytes());
 
-			ProcessBuilder processBuilder = new ProcessBuilder("python", sourcePath.toString());
+			// Create Docker command to run Python code
+			String dockerCommand = String.format(
+					"docker run --rm -v %s:/app -w /app python:3 python main.py",
+					sourcePath.getParent().toAbsolutePath()
+			);
+
+			ProcessBuilder processBuilder = new ProcessBuilder("sh", "-c", dockerCommand);
 			Process process = processBuilder.start();
 			try (OutputStream outputStream = process.getOutputStream()) {
 				outputStream.write(input.getBytes());
@@ -217,29 +398,30 @@ public class Controller {
 			Path sourcePath = Files.createTempFile("main", ".cpp");
 			Files.write(sourcePath, code.getBytes());
 
-			// Compile the C++ code
-			Process compileProcess = new ProcessBuilder("g++", sourcePath.toString(), "-o", "main").start();
-			compileProcess.waitFor();
+			// Create Docker command to compile and run C++ code
+			String dockerCommand = String.format(
+					"docker run --rm -v %s:/app -w /app gcc:latest /bin/sh -c 'g++ main.cpp -o main && ./main'",
+					sourcePath.getParent().toAbsolutePath()
+			);
 
-			// Execute the compiled C++ code with input
-			ProcessBuilder processBuilder = new ProcessBuilder("./main");
-			Process executeProcess = processBuilder.start();
-			try (OutputStream outputStream = executeProcess.getOutputStream()) {
+			ProcessBuilder processBuilder = new ProcessBuilder("sh", "-c", dockerCommand);
+			Process process = processBuilder.start();
+			try (OutputStream outputStream = process.getOutputStream()) {
 				outputStream.write(input.getBytes());
 			}
 
-			BufferedReader reader = new BufferedReader(new InputStreamReader(executeProcess.getInputStream()));
+			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 			StringBuilder result = new StringBuilder();
 			String line;
 			while ((line = reader.readLine()) != null) {
 				result.append(line).append("\n");
 			}
 
-			int exitCode = executeProcess.waitFor();
+			int exitCode = process.waitFor();
 			if (exitCode == 0) {
 				output = result.toString();
 			} else {
-				BufferedReader errorReader = new BufferedReader(new InputStreamReader(executeProcess.getErrorStream()));
+				BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 				StringBuilder errorResult = new StringBuilder();
 				String errorLine;
 				while ((errorLine = errorReader.readLine()) != null) {
@@ -263,7 +445,13 @@ public class Controller {
 			Path scriptPath = Files.createTempFile("main", ".js");
 			Files.write(scriptPath, code.getBytes());
 
-			ProcessBuilder processBuilder = new ProcessBuilder("node", scriptPath.toString());
+			// Create Docker command to run JavaScript code
+			String dockerCommand = String.format(
+					"docker run --rm -v %s:/app -w /app node:18 node main.js",
+					scriptPath.getParent().toAbsolutePath()
+			);
+
+			ProcessBuilder processBuilder = new ProcessBuilder("sh", "-c", dockerCommand);
 			Process process = processBuilder.start();
 			try (OutputStream outputStream = process.getOutputStream()) {
 				outputStream.write(input.getBytes());
