@@ -18,6 +18,13 @@ COPY src ./src
 # Build the project
 RUN ./mvnw clean package
 
+# Set environment variables for database connection
+ENV DB_HOST=jdbc:mysql://junction.proxy.rlwy.net
+ENV DB_PORT=55278
+ENV DB_NAME=railway
+ENV DB_USER=root
+ENV DB_PASSWORD=oTtyyPCEfrBgVCYomkyemxWsciMUCWuP
+
 # Expose port 8080 for the Spring Boot application
 EXPOSE 8080
 
